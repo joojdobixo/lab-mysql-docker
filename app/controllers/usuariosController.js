@@ -16,24 +16,24 @@ async function buscarPorId(req, res) {
 }
 
 async function criar(req, res) {
-  const { nome, email } = req.body;
+  const { nome, email, senha } = req.body;
 
-  if (!nome || !email) {
-    return res.status(400).json({ erro: 'Nome e email sao obrigatorios' });
+  if (!nome || !email || !senha) {
+    return res.status(400).json({ erro: 'Nome, email e senha sao obrigatorios' });
   }
 
-  const usuario = await service.criar({ nome, email });
+  const usuario = await service.criar({ nome, email, senha });
   return res.status(201).json(usuario);
 }
 
 async function atualizar(req, res) {
-  const { nome, email } = req.body;
+  const { nome, email, senha } = req.body;
 
   if (!nome || !email) {
     return res.status(400).json({ erro: 'Nome e email sao obrigatorios' });
   }
 
-  const usuario = await service.atualizar(req.params.id, { nome, email });
+  const usuario = await service.atualizar(req.params.id, { nome, email, senha });
 
   if (!usuario) {
     return res.status(404).json({ erro: 'Usuario nao encontrado' });
