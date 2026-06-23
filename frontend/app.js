@@ -44,8 +44,8 @@ function mostrarMensagem(elemento, texto, erro = false) {
   elemento.style.color = erro ? '#B42318' : '#1F5F5B';
 }
 
-function formatarData(isoString) {
-  const data = new Date(isoString);
+function formatarData(dataString) {
+  const data = new Date(dataString.replace(' ', 'T'));
   return data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }
 
