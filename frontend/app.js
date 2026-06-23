@@ -35,6 +35,11 @@ const reservaFim = document.getElementById('reserva-fim');
 const reservaMensagem = document.getElementById('reserva-mensagem');
 const cancelarReservaBtn = document.getElementById('cancelar-reserva-btn');
 
+// --- elementos: admin ---
+const adminPanel = document.getElementById('admin-panel');
+const pendentesTabela = document.getElementById('pendentes-tabela');
+const pendentesVazio = document.getElementById('pendentes-vazio');
+
 let usuarioAtual = null;
 let salasCache = [];
 let reservasCache = [];
@@ -66,10 +71,18 @@ function atualizarUiSessao() {
     authPanel.classList.add('oculto');
     usuarioLogadoPanel.classList.remove('oculto');
     usuarioLogadoInfo.textContent = `Logado como ${usuarioAtual.nome} (${usuarioAtual.role})`;
+
+    if (usuarioAtual.role === 'admin') {
+      adminPanel.classList.remove('oculto');
+      carregarPendentes();
+    } else {
+      adminPanel.classList.add('oculto');
+    }
   } else {
     authPanel.classList.remove('oculto');
     usuarioLogadoPanel.classList.add('oculto');
     reservaPanel.classList.add('oculto');
+    adminPanel.classList.add('oculto');
   }
 }
 
@@ -163,8 +176,19 @@ function renderizarSalas() {
   salasCache.forEach((sala) => {
     const ocupacoes = reservasCache
       .filter((reserva) => reserva.sala_id === sala.id)
-      .map((reserva) => `${formatarData(reserva.data_inicio)} - ${formatarData(reserva.data_fim)}`)
-      .join('<br />') || 'Sem reservas futuras';
+      .map((reserva) => {
+        const badgeClasse = reserva.status === 'pendente' ? 'badge-pendente' : 'badge-ativa';
+        const badgeTexto = reserva.status === 'pendente' ? 'Pendente' : 'Confirmada';
+
+        return `
+          <div class="ocupacao-item">
+            ${formatarData(reserva.data_inicio)} - ${formatarData(reserva.data_fim)}
+            <span class="badge ${badgeClasse}">${badgeTexto}</span><br />
+            <small>Responsável: ${reserva.responsavel_nome}</small>
+          </div>
+        `;
+      })
+      .join('') || 'Sem reservas futuras';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -224,9 +248,67 @@ async function confirmarReserva(event) {
     return;
   }
 
-  mostrarMensagem(reservaMensagem, 'Reserva confirmada com sucesso');
+  mostrarMensagem(reservaMensagem, 'Solicitação enviada. Aguardando aprovação do administrador.');
   reservaForm.reset();
   reservaPanel.classList.add('oculto');
+  carregarSalasEReservas();
+}
+
+async function carregarPendentes() {
+  const resposta = await fetch(`${API_URL}/reservas/pendentes`, { credentials: 'include' });
+
+  if (!resposta.ok) {
+    return;
+  }
+
+  const pendentes = await resposta.json();
+  renderizarPendentes(pendentes);
+}
+
+function renderizarPendentes(pendentes) {
+  pendentesTabela.innerHTML = '';
+
+  if (pendentes.length === 0) {
+    pendentesVazio.classList.remove('oculto');
+    return;
+  }
+
+  pendentesVazio.classList.add('oculto');
+
+  pendentes.forEach((reserva) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${reserva.sala_nome}</td>
+      <td>${reserva.responsavel_nome}</td>
+      <td>${reserva.titulo}</td>
+      <td>${formatarData(reserva.data_inicio)} - ${formatarData(reserva.data_fim)}</td>
+      <td>
+        <button class="acao acao-aprovar" data-aprovar="${reserva.id}">Aprovar</button>
+        <button class="acao acao-rejeitar" data-rejeitar="${reserva.id}">Rejeitar</button>
+      </td>
+    `;
+
+    pendentesTabela.appendChild(tr);
+  });
+}
+
+async function aprovarReserva(id) {
+  await fetch(`${API_URL}/reservas/${id}/aprovar`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+
+  carregarPendentes();
+  carregarSalasEReservas();
+}
+
+async function rejeitarReserva(id) {
+  await fetch(`${API_URL}/reservas/${id}/rejeitar`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+
+  carregarPendentes();
   carregarSalasEReservas();
 }
 
@@ -250,6 +332,19 @@ salasTabela.addEventListener('click', (event) => {
 
   if (salaId) {
     abrirFormularioReserva(salaId, salaNome);
+  }
+});
+
+pendentesTabela.addEventListener('click', (event) => {
+  const aprovarId = event.target.getAttribute('data-aprovar');
+  const rejeitarId = event.target.getAttribute('data-rejeitar');
+
+  if (aprovarId) {
+    aprovarReserva(aprovarId);
+  }
+
+  if (rejeitarId) {
+    rejeitarReserva(rejeitarId);
   }
 });
 

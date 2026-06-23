@@ -2,9 +2,9 @@ const db = require('../db');
 
 async function listarPublico() {
   const [rows] = await db.query(
-    `SELECT id, sala_id, titulo, data_inicio, data_fim
+    `SELECT id, sala_id, titulo, responsavel_nome, status, data_inicio, data_fim
      FROM reservas
-     WHERE status = 'ativa'
+     WHERE status IN ('pendente', 'ativa')
      ORDER BY data_inicio ASC`
   );
   return rows;
@@ -34,6 +34,18 @@ async function listarPorUsuario(usuarioId) {
   return rows;
 }
 
+async function listarPendentes() {
+  const [rows] = await db.query(
+    `SELECT r.id, r.sala_id, s.nome AS sala_nome, r.responsavel_nome,
+            r.titulo, r.data_inicio, r.data_fim
+     FROM reservas r
+     JOIN salas s ON s.id = r.sala_id
+     WHERE r.status = 'pendente'
+     ORDER BY r.data_inicio ASC`
+  );
+  return rows;
+}
+
 async function buscarPorId(id) {
   const [rows] = await db.query(
     `SELECT r.id, r.sala_id, s.nome AS sala_nome, r.usuario_id, r.responsavel_nome,
@@ -52,7 +64,7 @@ async function existeConflitoSala(salaId, dataInicio, dataFim, ignorarReservaId 
   let sql = `
     SELECT id FROM reservas
     WHERE sala_id = ?
-      AND status = 'ativa'
+      AND status IN ('pendente', 'ativa')
       AND data_inicio < ?
       AND data_fim > ?
   `;
@@ -75,7 +87,7 @@ async function existeConflitoUsuario(usuarioId, dataInicio, dataFim, ignorarRese
   let sql = `
     SELECT id FROM reservas
     WHERE usuario_id = ?
-      AND status = 'ativa'
+      AND status IN ('pendente', 'ativa')
       AND data_inicio < ?
       AND data_fim > ?
   `;
@@ -112,13 +124,42 @@ async function cancelar(id) {
   return buscarPorId(id);
 }
 
+async function aprovar(id) {
+  const [result] = await db.query(
+    `UPDATE reservas SET status = 'ativa' WHERE id = ? AND status = 'pendente'`,
+    [id]
+  );
+
+  if (result.affectedRows === 0) {
+    return null;
+  }
+
+  return buscarPorId(id);
+}
+
+async function rejeitar(id) {
+  const [result] = await db.query(
+    `UPDATE reservas SET status = 'rejeitada' WHERE id = ? AND status = 'pendente'`,
+    [id]
+  );
+
+  if (result.affectedRows === 0) {
+    return null;
+  }
+
+  return buscarPorId(id);
+}
+
 module.exports = {
   listarPublico,
   listarCompleto,
   listarPorUsuario,
+  listarPendentes,
   buscarPorId,
   existeConflitoSala,
   existeConflitoUsuario,
   criar,
-  cancelar
+  cancelar,
+  aprovar,
+  rejeitar
 };

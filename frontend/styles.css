@@ -266,6 +266,64 @@ tbody tr:last-child td {
   color: #fff;
 }
 
+/* --- Badges de status --- */
+
+.ocupacao-item {
+  margin-bottom: 10px;
+}
+
+.ocupacao-item:last-child {
+  margin-bottom: 0;
+}
+
+.ocupacao-item small {
+  color: var(--text-muted);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 6px;
+}
+
+.badge-pendente {
+  background: #FBE8D7;
+  color: #9A4A0A;
+}
+
+.badge-ativa {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+/* --- Painel admin --- */
+
+#admin-panel .acao-aprovar {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  margin-right: 8px;
+}
+
+#admin-panel .acao-aprovar:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+#admin-panel .acao-rejeitar {
+  background: #FBE3E1;
+  color: var(--danger);
+}
+
+#admin-panel .acao-rejeitar:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
 /* --- Utilitarios --- */
 
 .oculto {

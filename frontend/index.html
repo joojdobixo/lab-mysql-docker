@@ -124,6 +124,27 @@
         <p id="reserva-mensagem" class="mensagem" aria-live="polite"></p>
       </form>
     </section>
+
+    <section id="admin-panel" class="panel oculto">
+      <h2>Reservas pendentes</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sala</th>
+              <th>Responsável</th>
+              <th>Título</th>
+              <th>Horário</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="pendentes-tabela"></tbody>
+        </table>
+      </div>
+
+      <p id="pendentes-vazio" class="mensagem oculto">Nenhuma reserva pendente.</p>
+    </section>
   </main>
 
   <footer class="site-footer">

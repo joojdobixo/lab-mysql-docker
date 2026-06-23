@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS reservas (
     titulo VARCHAR(100) NOT NULL,
     data_inicio DATETIME NOT NULL,
     data_fim DATETIME NOT NULL,
-    status ENUM('ativa', 'cancelada') DEFAULT 'ativa',
+    status ENUM('pendente', 'ativa', 'rejeitada', 'cancelada') NOT NULL DEFAULT 'pendente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sala_id) REFERENCES salas(id) ON DELETE CASCADE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL,

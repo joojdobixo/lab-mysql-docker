@@ -88,11 +88,39 @@ async function cancelar(req, res) {
   return res.json(reserva);
 }
 
+async function listarPendentes(req, res) {
+  const reservas = await service.listarPendentes();
+  res.json(reservas);
+}
+
+async function aprovar(req, res) {
+  const reserva = await service.aprovar(req.params.id);
+
+  if (!reserva) {
+    return res.status(404).json({ erro: 'Reserva pendente nao encontrada' });
+  }
+
+  return res.json(reserva);
+}
+
+async function rejeitar(req, res) {
+  const reserva = await service.rejeitar(req.params.id);
+
+  if (!reserva) {
+    return res.status(404).json({ erro: 'Reserva pendente nao encontrada' });
+  }
+
+  return res.json(reserva);
+}
+
 module.exports = {
   listarPublico,
   listarCompleto,
   minhasReservas,
+  listarPendentes,
   buscarPorId,
   criar,
-  cancelar
+  cancelar,
+  aprovar,
+  rejeitar
 };
