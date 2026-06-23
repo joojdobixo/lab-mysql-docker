@@ -40,6 +40,18 @@ const adminPanel = document.getElementById('admin-panel');
 const pendentesTabela = document.getElementById('pendentes-tabela');
 const pendentesVazio = document.getElementById('pendentes-vazio');
 
+// --- elementos: admin (CRUD de salas) ---
+const salaForm = document.getElementById('sala-form');
+const salaIdInput = document.getElementById('sala-id');
+const salaNomeInput = document.getElementById('sala-nome');
+const salaCapacidadeInput = document.getElementById('sala-capacidade');
+const salaDescricaoInput = document.getElementById('sala-descricao');
+const salaRecursosInput = document.getElementById('sala-recursos');
+const salaSubmitBtn = document.getElementById('sala-submit-btn');
+const salaCancelarBtn = document.getElementById('sala-cancelar-btn');
+const salaMensagem = document.getElementById('sala-mensagem');
+const adminSalasTabela = document.getElementById('admin-salas-tabela');
+
 let usuarioAtual = null;
 let salasCache = [];
 let reservasCache = [];
@@ -207,9 +219,32 @@ function renderizarSalas() {
   });
 }
 
+function renderizarAdminSalas() {
+  adminSalasTabela.innerHTML = '';
+
+  salasCache.forEach((sala) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${sala.nome}</td>
+      <td>${sala.capacidade}</td>
+      <td>${sala.recursos || '-'}</td>
+      <td>
+        <button class="acao" data-editar="${sala.id}">Editar</button>
+        <button class="acao acao-excluir" data-excluir="${sala.id}">Excluir</button>
+      </td>
+    `;
+
+    adminSalasTabela.appendChild(tr);
+  });
+}
+
 async function carregarSalasEReservas() {
   await Promise.all([carregarSalas(), carregarReservasPublicas()]);
   renderizarSalas();
+
+  if (usuarioAtual && usuarioAtual.role === 'admin') {
+    renderizarAdminSalas();
+  }
 }
 
 function abrirFormularioReserva(salaId, salaNome) {
@@ -312,6 +347,72 @@ async function rejeitarReserva(id) {
   carregarSalasEReservas();
 }
 
+function preencherFormularioSala(sala) {
+  salaIdInput.value = sala.id;
+  salaNomeInput.value = sala.nome;
+  salaCapacidadeInput.value = sala.capacidade;
+  salaDescricaoInput.value = sala.descricao || '';
+  salaRecursosInput.value = sala.recursos || '';
+  salaSubmitBtn.textContent = 'Salvar alterações';
+  salaCancelarBtn.classList.remove('oculto');
+}
+
+function limparFormularioSala() {
+  salaForm.reset();
+  salaIdInput.value = '';
+  salaSubmitBtn.textContent = 'Criar sala';
+  salaCancelarBtn.classList.add('oculto');
+  mostrarMensagem(salaMensagem, '');
+}
+
+async function salvarSala(event) {
+  event.preventDefault();
+
+  const id = salaIdInput.value;
+  const payload = {
+    nome: salaNomeInput.value.trim(),
+    capacidade: Number(salaCapacidadeInput.value),
+    descricao: salaDescricaoInput.value.trim(),
+    recursos: salaRecursosInput.value.trim()
+  };
+
+  const url = id ? `${API_URL}/salas/${id}` : `${API_URL}/salas`;
+  const method = id ? 'PUT' : 'POST';
+
+  const resposta = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload)
+  });
+
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    mostrarMensagem(salaMensagem, dados.erro || 'Falha ao salvar sala', true);
+    return;
+  }
+
+  mostrarMensagem(salaMensagem, id ? 'Sala atualizada com sucesso' : 'Sala criada com sucesso');
+  limparFormularioSala();
+  carregarSalasEReservas();
+}
+
+async function excluirSala(id) {
+  const confirmou = confirm('Excluir esta sala também remove todas as reservas associadas a ela. Continuar?');
+
+  if (!confirmou) {
+    return;
+  }
+
+  await fetch(`${API_URL}/salas/${id}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+
+  carregarSalasEReservas();
+}
+
 tabButtons.forEach((botao) => {
   botao.addEventListener('click', () => alternarTab(botao.dataset.tab));
 });
@@ -345,6 +446,29 @@ pendentesTabela.addEventListener('click', (event) => {
 
   if (rejeitarId) {
     rejeitarReserva(rejeitarId);
+  }
+});
+
+salaForm.addEventListener('submit', salvarSala);
+
+salaCancelarBtn.addEventListener('click', () => {
+  limparFormularioSala();
+});
+
+adminSalasTabela.addEventListener('click', (event) => {
+  const editarId = event.target.getAttribute('data-editar');
+  const excluirId = event.target.getAttribute('data-excluir');
+
+  if (editarId) {
+    const sala = salasCache.find((s) => String(s.id) === editarId);
+
+    if (sala) {
+      preencherFormularioSala(sala);
+    }
+  }
+
+  if (excluirId) {
+    excluirSala(excluirId);
   }
 });
 

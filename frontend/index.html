@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reserva de Salas</title>
+  <title>DockeRoom</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="site-header">
-    <h1>Reserva de Salas</h1>
-    <p>Consulte a disponibilidade e reserve uma sala para sua reunião.</p>
+    <h1>Dockeroom</h1>
+    <p>Consulte a disponibilidade ao reservar uma sala.</p>
   </header>
 
   <main class="layout">
@@ -126,7 +126,56 @@
     </section>
 
     <section id="admin-panel" class="panel oculto">
-      <h2>Reservas pendentes</h2>
+      <h2>Gerenciar salas</h2>
+
+      <form id="sala-form">
+        <input type="hidden" id="sala-id" />
+
+        <div class="field-row">
+          <div class="field">
+            <label for="sala-nome">Nome</label>
+            <input type="text" id="sala-nome" required />
+          </div>
+
+          <div class="field">
+            <label for="sala-capacidade">Capacidade</label>
+            <input type="number" id="sala-capacidade" min="1" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sala-descricao">Descrição</label>
+          <input type="text" id="sala-descricao" />
+        </div>
+
+        <div class="field">
+          <label for="sala-recursos">Recursos</label>
+          <input type="text" id="sala-recursos" placeholder="Ex: Projetor, TV, quadro branco" />
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="sala-submit-btn">Criar sala</button>
+          <button type="button" id="sala-cancelar-btn" class="btn-secondary oculto">Cancelar edição</button>
+        </div>
+
+        <p id="sala-mensagem" class="mensagem" aria-live="polite"></p>
+      </form>
+
+      <div class="table-wrap admin-salas-tabela">
+        <table>
+          <thead>
+            <tr>
+              <th>Sala</th>
+              <th>Capacidade</th>
+              <th>Recursos</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="admin-salas-tabela"></tbody>
+        </table>
+      </div>
+
+      <h2 class="admin-secao-titulo">Reservas pendentes</h2>
 
       <div class="table-wrap">
         <table>

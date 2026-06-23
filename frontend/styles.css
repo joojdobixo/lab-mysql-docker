@@ -324,6 +324,27 @@ tbody tr:last-child td {
   color: #fff;
 }
 
+.admin-secao-titulo {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.admin-salas-tabela {
+  margin-top: 24px;
+}
+
+.acao-excluir {
+  background: #FBE3E1;
+  color: var(--danger);
+  margin-left: 8px;
+}
+
+.acao-excluir:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
 /* --- Utilitarios --- */
 
 .oculto {
